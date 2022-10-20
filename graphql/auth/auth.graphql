@@ -1,0 +1,51 @@
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    password: String!
+    posts: [Post]! @hasMany
+    comments: [Comment]! @hasMany
+    created_at: DateHuman!
+    updated_at: DateHuman!
+}
+
+extend type Query {
+    # users: [User!]! @all @orderBy(column: "name", direction: ASC)
+    users: [User!]! @paginate
+    users_nopaginate: [User!]! @all
+    user(id: ID @eq): User @find
+}
+
+extend type Mutation {
+    login(): User
+}
+
+input CreateUserBelongsTo {
+    connect: ID
+    create: CreateUserInput
+    update: UpdateUserInput
+    upsert: UpdateUserInput
+}
+
+input UpdateUserBelongsTo {
+    connect: ID
+    create: CreateUserInput
+    update: UpdateUserInput
+    upsert: UpdateUserInput
+    disconnect: Boolean
+    delete: Boolean
+}
+
+input CreateUserInput {
+    name: String! @rules(apply: ["required", "min:4"])
+    email: String! @trim @rules(apply: ["required", "email", "unique:users"])
+    password: String! @trim @rules(apply: ["required", "min:4"]) @hash
+}
+
+input UpdateUserInput {
+    id: ID!
+    name: String @rules(apply: ["min:4"])
+    email: String @trim @rules(apply: ["email"])
+    # email: String @rules(apply: ["email", "unique:users"])
+    password: String @trim @rules(apply: ["min:4"]) @hash
+}

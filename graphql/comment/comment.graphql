@@ -1,0 +1,35 @@
+type Comment {
+    id: ID!
+    author: User! @belongsTo
+    post: Post! @belongsTo
+    reply: String!
+    created_at: DateHuman!
+    updated_at: DateHuman!
+}
+
+extend type Query {
+    user_comments(user_id: [Int!] @in(key: "user_id")): [Comment!]! @all
+    post_comments(post_id: [Int!] @in(key: "post_id")): [Comment!]! @all
+    comments: [Comment!] @paginate
+    comments_nopaginate: [Comment!] @all
+    # comments: [Comment!] @paginate
+    comment(id: ID @eq): Comment @find
+}
+
+extend type Mutation {
+    createComment(input: CreateCommentInput! @spread): Comment @create
+    updateComment(input: UpdateCommentInput! @spread): Comment @update
+    upsertComment(input: UpdateCommentInput! @spread): Comment @upsert
+    deleteComment(id: ID!): Comment @delete
+}
+
+input CreateCommentInput {
+    author: CreateUserBelongsTo
+    post: CreatePostBelongsTo
+    reply: String!
+}
+
+input UpdateCommentInput {
+    id: ID!
+    reply: String @rules(apply: ["max:255"])
+}

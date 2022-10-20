@@ -1,0 +1,72 @@
+type Post {
+    id: ID!
+    title: String!
+    content: String!
+    author: User! @belongsTo
+    comments: [Comment]! @hasMany
+    created_at: DateHuman!
+    updated_at: DateHuman!
+}
+
+# main crud
+extend type Query {
+    # posts: [Post!]! @paginate
+    # posts(order_by: _ @orderBy): [Post!]! @paginate
+    posts: [Post!]! @paginate
+    posts_nopaginate: [Post!]! @all
+    post(id: ID @eq): Post @find
+    user_posts(user_id: [Int!] @in(key: "user_id")): [Post!]! @all
+
+    post_with_auth(id: ID! @eq): Post @can(ability: "view" query: true) @find @softDeletes
+}
+
+extend type Mutation {
+    createPost(input: CreatePostInput! @spread): Post @create
+    updatePost(input: UpdatePostInput! @spread): Post @update
+    upsertPost(input: UpdatePostInput! @spread): Post @upsert
+    deletePost(id: ID!): Post @delete
+}
+
+# crud inputs
+input CreatePostInput {
+    title: String!
+    content: String!
+    author: CreateUserBelongsTo
+}
+
+input UpdatePostInput {
+    id: ID!
+    title: String @rules(apply: ["max:100"])
+    content: String @rules(apply: ["max:255"])
+    author: UpdateUserBelongsTo
+}
+
+# crud relations
+input CreatePostBelongsTo {
+    connect: ID
+    create: CreatePostInput
+    update: UpdatePostInput
+    upsert: UpdatePostInput
+}
+
+input CreatePostsHasMany {
+    create: [CreatePostInput!]
+}
+
+input UpdatePostBelongsTo {
+    create: CreatePostInput
+    update: UpdatePostInput
+    upsert: UpdatePostInput
+    connect: ID
+    disconnect: Boolean
+    delete: Boolean
+}
+
+input UpdatePostsHasMany {
+    create: CreatePostInput
+    update: UpdatePostInput
+    upsert: UpdatePostInput
+    connect: [ID!]
+    disconnect: [ID!]
+    delete: [ID!]
+}

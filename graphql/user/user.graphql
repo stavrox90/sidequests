@@ -1,0 +1,59 @@
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    password: String!
+    posts: [Post]! @hasMany
+    comments: [Comment]! @hasMany
+    created_at: DateHuman!
+    updated_at: DateHuman!
+}
+
+# main crud
+extend type Query {
+    # users: [User!]! @all @orderBy(column: "name", direction: ASC)
+    users: [User!]! @paginate
+    users_nopaginate: [User!]! @all
+    user(id: ID @eq): User @find
+}
+
+extend type Mutation {
+    createUser(input: CreateUserInput! @spread): User @create
+    updateUser(input: UpdateUserInput! @spread): User @update
+    upsertUser(input: UpdateUserInput! @spread): User @upsert
+    deleteUser(id: ID!): User @delete
+}
+
+# crud inputs
+input CreateUserInput {
+    name: String! @rules(apply: ["required", "min:4"])
+    email: String! @trim @rules(apply: ["required", "email", "unique:users"])
+    password: String! @trim @rules(apply: ["required", "min:4"]) @hash
+    posts: CreatePostsHasMany
+}
+
+input UpdateUserInput {
+    id: ID!
+    name: String @rules(apply: ["min:4"])
+    email: String @trim @rules(apply: ["email"])
+    # email: String @rules(apply: ["email", "unique:users"])
+    password: String @trim @rules(apply: ["min:4"]) @hash
+    posts: UpdatePostsHasMany
+}
+
+# crud relations
+input CreateUserBelongsTo {
+    connect: ID
+    create: CreateUserInput
+    update: UpdateUserInput
+    upsert: UpdateUserInput
+}
+
+input UpdateUserBelongsTo {
+    connect: ID
+    create: CreateUserInput
+    update: UpdateUserInput
+    upsert: UpdateUserInput
+    disconnect: Boolean
+    delete: Boolean
+}
